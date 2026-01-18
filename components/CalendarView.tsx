@@ -1,13 +1,14 @@
 
 import React, { useState } from 'react';
-import { Harvest, Advance, RainEvent, Employee, WorkTask } from '../types.ts';
+import { Harvest, Advance, RainEvent, Employee, WorkTask, Entrepreneur } from '../types.ts';
 import { 
   ChevronLeft, ChevronRight, Scale, Wallet, Trash2, 
-  CloudRain, Clock, Pickaxe, Info
+  CloudRain, Clock, Pickaxe, Info, ShoppingBag, Truck
 } from 'lucide-react';
 
 interface Props {
   employees: Employee[];
+  entrepreneurs: Entrepreneur[];
   harvests: Harvest[];
   advances: Advance[];
   workTasks: WorkTask[];
@@ -20,7 +21,7 @@ interface Props {
 }
 
 const CalendarView: React.FC<Props> = ({ 
-  employees, harvests, advances, workTasks, rainEvents, 
+  employees, entrepreneurs, harvests, advances, workTasks, rainEvents, 
   onDeleteHarvest, onDeleteAdvance, onDeleteTask, onAddRain, onDeleteRain 
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -83,7 +84,6 @@ const CalendarView: React.FC<Props> = ({
               >
                 <span className={`text-sm md:text-xl font-black ${isSelected && !isToday ? 'text-emerald-700' : ''}`}>{day}</span>
                 
-                {/* ICONES COLOREES PAR EMPLOYE DANS LA CASE */}
                 <div className="flex flex-wrap gap-0.5 justify-center mt-auto w-full pb-1 overflow-hidden">
                   {hasRain && <CloudRain className={`w-2.5 h-2.5 ${isToday ? 'text-white' : 'text-blue-400'}`} />}
                   {dayHarvests.map((h, idx) => {
@@ -95,6 +95,7 @@ const CalendarView: React.FC<Props> = ({
                     return <Pickaxe key={`t-${idx}`} className="w-2 h-2" style={{ color: isToday ? 'white' : emp?.color }} />;
                   })}
                   {dayAdvances.map((a, idx) => {
+                    if (a.entrepreneurId) return <ShoppingBag key={`e-${idx}`} className={`w-2 h-2 ${isToday ? 'text-white' : 'text-blue-500'}`} />;
                     const emp = employees.find(e => e.id === a.employeeId);
                     return <Wallet key={`a-${idx}`} className="w-2 h-2" style={{ color: isToday ? 'white' : emp?.color }} />;
                   })}
@@ -139,27 +140,29 @@ const CalendarView: React.FC<Props> = ({
               
               {[...dailyHarvests, ...dailyTasks, ...dailyAdvances].map((item: any) => {
                 const emp = employees.find(e => e.id === item.employeeId);
+                const en = entrepreneurs.find(e => e.id === item.entrepreneurId);
                 const isHarvest = !!item.weight;
                 const isTask = !!item.description;
                 const isAdvance = !isHarvest && !isTask;
+                const isExternal = !!item.entrepreneurId;
 
                 return (
-                  <div key={item.id} className={`flex justify-between items-center p-5 rounded-[2rem] border ${isAdvance ? 'bg-amber-50 border-amber-100' : 'bg-gray-50 border-gray-100'}`}>
+                  <div key={item.id} className={`flex justify-between items-center p-5 rounded-[2rem] border ${isExternal ? 'bg-blue-50 border-blue-100' : isAdvance ? 'bg-amber-50 border-amber-100' : 'bg-gray-50 border-gray-100'}`}>
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg" style={{ backgroundColor: emp?.color }}>
-                        {isHarvest ? <Scale className="w-6 h-6" /> : isTask ? <Pickaxe className="w-6 h-6" /> : <Wallet className="w-6 h-6" />}
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg" style={{ backgroundColor: isExternal ? '#2563eb' : (emp?.color || '#cbd5e1') }}>
+                        {isHarvest ? <Scale className="w-6 h-6" /> : isTask ? <Pickaxe className="w-6 h-6" /> : isExternal ? <ShoppingBag className="w-6 h-6" /> : <Wallet className="w-6 h-6" />}
                       </div>
                       <div>
-                        <p className="font-black text-sm text-emerald-950">{emp?.name}</p>
-                        <p className={`text-[10px] font-bold uppercase tracking-widest ${isAdvance ? 'text-amber-600' : 'text-emerald-600'}`}>
-                            {isHarvest ? `${item.weight}kg ${item.crop}` : isTask ? item.description : `Paiement ${item.paymentMethod}`}
+                        <p className="font-black text-sm text-emerald-950">{isExternal ? en?.name : emp?.name}</p>
+                        <p className={`text-[10px] font-bold uppercase tracking-widest ${isExternal ? 'text-blue-600' : isAdvance ? 'text-amber-600' : 'text-emerald-600'}`}>
+                            {isHarvest ? `${item.weight}kg ${item.crop}` : isTask ? item.description : `${item.category || 'Paiement'} ${item.paymentMethod}`}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <span className={`font-black text-sm ${isAdvance ? 'text-red-600' : 'text-emerald-900'}`}>
-                            {isAdvance ? `-${item.amount.toLocaleString()} F` : isTask ? `${item.amount.toLocaleString()} F` : `${(item.weight * item.payRate).toLocaleString()} F`}
+                        <span className={`font-black text-sm ${isAdvance || isExternal ? 'text-red-600' : 'text-emerald-900'}`}>
+                            {isAdvance || isExternal ? `-${item.amount.toLocaleString()} F` : isTask ? `${item.amount.toLocaleString()} F` : `${(item.weight * item.payRate).toLocaleString()} F`}
                         </span>
                       </div>
                       <button onClick={() => {

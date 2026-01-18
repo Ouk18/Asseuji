@@ -5,7 +5,7 @@ import {
   UserPlus, UserX, UserCheck, 
   X, Scale, Wallet, ReceiptText,
   User, PhoneCall, Trash2, Banknote, Pickaxe,
-  PlusCircle, Truck, Briefcase
+  PlusCircle, Truck, Briefcase, Plus
 } from 'lucide-react';
 import EmployeeForm from './EmployeeForm.tsx';
 import EntrepreneurForm from './EntrepreneurForm.tsx';
@@ -40,85 +40,116 @@ const EmployeeManager: React.FC<Props> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-        <div className="flex bg-white p-1.5 rounded-2xl border w-fit">
+      {/* Header avec Navigation et Boutons d'Action Rapide */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+            <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">Gestion du Personnel</h3>
+            <div className="flex gap-2">
+                <button 
+                    onClick={() => setShowAddEmployee(true)}
+                    className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-lg font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+                >
+                    <Plus className="w-3.5 h-3.5" /> Manœuvre
+                </button>
+                <button 
+                    onClick={() => setShowAddEntrepreneur(true)}
+                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl shadow-lg font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+                >
+                    <Plus className="w-3.5 h-3.5" /> Prestataire
+                </button>
+            </div>
+        </div>
+
+        <div className="flex bg-white p-1 rounded-2xl border w-full overflow-hidden">
           <button 
             onClick={() => setActiveSubTab('employees')} 
-            className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeSubTab === 'employees' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-gray-400'}`}
+            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeSubTab === 'employees' ? 'bg-emerald-600 text-white shadow-md' : 'text-gray-400'}`}
           >
-            Manoeuvres ({employees.length})
+            Nos Manœuvres ({employees.length})
           </button>
           <button 
             onClick={() => setActiveSubTab('entrepreneurs')} 
-            className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeSubTab === 'entrepreneurs' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-gray-400'}`}
+            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeSubTab === 'entrepreneurs' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400'}`}
           >
             Prestataires ({entrepreneurs.length})
           </button>
         </div>
-        {canEdit && (
-          <button 
-            onClick={() => activeSubTab === 'employees' ? setShowAddEmployee(true) : setShowAddEntrepreneur(true)} 
-            className="flex items-center justify-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-2xl shadow-lg font-black text-[10px] uppercase tracking-widest"
-          >
-            <UserPlus className="w-4 h-4" /> Ajouter {activeSubTab === 'employees' ? 'Manoeuvre' : 'Prestataire'}
-          </button>
-        )}
       </div>
 
       {activeSubTab === 'employees' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {employees.map(emp => {
-            const empH = harvests.filter(h => h.employeeId === emp.id).reduce((acc, h) => acc + (h.weight * h.payRate), 0);
-            const empT = workTasks.filter(t => t.employeeId === emp.id).reduce((acc, t) => acc + t.amount, 0);
-            const empA = advances.filter(a => a.employeeId === emp.id).reduce((acc, a) => acc + a.amount, 0);
-            const empDue = Math.round(empH + empT - empA);
-            return (
-              <div key={emp.id} onClick={() => onSelectId(emp.id)} className={`bg-white p-4 rounded-2xl border-2 transition-all cursor-pointer ${selectedId === emp.id ? 'border-emerald-600 bg-emerald-50/30' : 'border-white shadow-sm'} ${emp.status !== 'ACTIF' ? 'opacity-60 grayscale' : ''}`}>
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xs font-black" style={{ backgroundColor: emp.status === 'ACTIF' ? emp.color : '#cbd5e1' }}>
-                      {emp.name.substring(0,2).toUpperCase()}
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-black text-gray-900">{emp.name}</h4>
-                      <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${emp.crop === 'HEVEA' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{emp.crop}</span>
+          {employees.length === 0 ? (
+            <div className="col-span-full py-16 text-center bg-white rounded-3xl border border-dashed border-gray-200">
+               <User className="w-12 h-12 mx-auto text-gray-200 mb-3" />
+               <p className="text-xs font-bold text-gray-400 uppercase">Aucun manœuvre enregistré</p>
+            </div>
+          ) : (
+            employees.map(emp => {
+                const empH = harvests.filter(h => h.employeeId === emp.id).reduce((acc, h) => acc + (h.weight * h.payRate), 0);
+                const empT = workTasks.filter(t => t.employeeId === emp.id).reduce((acc, t) => acc + t.amount, 0);
+                const empA = advances.filter(a => a.employeeId === emp.id).reduce((acc, a) => acc + a.amount, 0);
+                const empDue = Math.round(empH + empT - empA);
+                return (
+                  <div key={emp.id} onClick={() => onSelectId(emp.id)} className={`bg-white p-5 rounded-[2rem] border-2 transition-all cursor-pointer hover:shadow-xl ${selectedId === emp.id ? 'border-emerald-600 bg-emerald-50/30' : 'border-white shadow-sm'} ${emp.status !== 'ACTIF' ? 'opacity-60 grayscale' : ''}`}>
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white text-sm font-black shadow-inner" style={{ backgroundColor: emp.status === 'ACTIF' ? emp.color : '#cbd5e1' }}>
+                          {emp.name.substring(0,2).toUpperCase()}
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-black text-gray-900">{emp.name}</h4>
+                          <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${emp.crop === 'HEVEA' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{emp.crop}</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className={`text-sm font-black ${empDue > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{Math.abs(empDue).toLocaleString()} F</p>
+                        <p className="text-[8px] text-gray-400 font-bold uppercase tracking-tighter">Solde actuel</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className={`text-xs font-black ${empDue > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{Math.abs(empDue).toLocaleString()} F</p>
-                    <p className="text-[8px] text-gray-400 font-bold uppercase tracking-tighter">Solde dû</p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                );
+            })
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {entrepreneurs.length === 0 ? (
-            <div className="col-span-full py-20 text-center opacity-30 italic text-sm">Aucun prestataire enregistré.</div>
+            <div className="col-span-full py-16 text-center bg-white rounded-3xl border border-dashed border-gray-200">
+               <Truck className="w-12 h-12 mx-auto text-gray-200 mb-3" />
+               <p className="text-xs font-bold text-gray-400 uppercase">Aucun prestataire enregistré</p>
+            </div>
           ) : (
-            entrepreneurs.map(en => (
-              <div key={en.id} className="bg-white p-5 rounded-2xl border-2 border-white shadow-sm flex justify-between items-center group">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: en.color }}><Truck className="w-6 h-6" /></div>
-                  <div>
-                    <h4 className="font-black text-gray-900">{en.name}</h4>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase">{en.specialty || 'Fournisseur'}</p>
+            entrepreneurs.map(en => {
+                // Total des paiements effectués à ce prestataire
+                const totalPaid = advances.filter(a => a.entrepreneurId === en.id).reduce((acc, a) => acc + a.amount, 0);
+                return (
+                  <div key={en.id} className="bg-white p-5 rounded-[2rem] border-2 border-white shadow-sm hover:shadow-xl transition-all group">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: en.color || '#2563eb' }}><Truck className="w-6 h-6" /></div>
+                        <div>
+                          <h4 className="font-black text-sm text-gray-900">{en.name}</h4>
+                          <p className="text-[9px] font-bold text-gray-400 uppercase">{en.specialty || 'Fournisseur / Prestataire'}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-black text-blue-600">{totalPaid.toLocaleString()} F</p>
+                        <p className="text-[8px] text-gray-400 font-bold uppercase">Total réglé</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {en.phone && <a href={`tel:${en.phone}`} className="flex-1 flex items-center justify-center gap-2 py-2 bg-blue-50 text-blue-600 rounded-xl text-[10px] font-bold"><PhoneCall className="w-3 h-3" /> Appeler</a>}
+                      {canDelete && <button onClick={() => onDeleteEntrepreneur(en.id)} className="p-2 bg-red-50 text-red-600 rounded-xl active:scale-90"><Trash2 className="w-4 h-4" /></button>}
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {en.phone && <a href={`tel:${en.phone}`} className="p-2 bg-blue-50 text-blue-600 rounded-xl"><PhoneCall className="w-4 h-4" /></a>}
-                  {canDelete && <button onClick={() => onDeleteEntrepreneur(en.id)} className="p-2 bg-red-50 text-red-600 rounded-xl"><Trash2 className="w-4 h-4" /></button>}
-                </div>
-              </div>
-            ))
+                );
+            })
           )}
         </div>
       )}
 
       {showAddEmployee && <EmployeeForm onClose={() => setShowAddEmployee(false)} onSubmit={async (e) => { await onAdd(e); setShowAddEmployee(false); }} />}
-      {showAddEntrepreneur && <EntrepreneurForm onClose={() => setShowAddEntrepreneur(false)} onSubmit={async (en) => { await onAddEntrepreneur(en); setShowAddEntrepreneur(true); setShowAddEntrepreneur(false); }} />}
+      {showAddEntrepreneur && <EntrepreneurForm onClose={() => setShowAddEntrepreneur(false)} onSubmit={async (en) => { await onAddEntrepreneur(en); setShowAddEntrepreneur(false); }} />}
 
       {selectedEmployee && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 bg-gray-900/40 backdrop-blur-sm">

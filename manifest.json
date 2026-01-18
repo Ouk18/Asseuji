@@ -16,11 +16,25 @@
       "purpose": "any maskable"
     }
   ],
-  "start_url": "./index.html",
+  "start_url": "index.html",
   "scope": "./",
   "display": "standalone",
   "theme_color": "#065f46",
   "background_color": "#f9fafb",
   "orientation": "portrait",
-  "categories": ["finance", "productivity"]
+  "categories": ["finance", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Nouvelle Récolte",
+      "short_name": "Récolte",
+      "url": "index.html?action=harvest",
+      "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/2682/2682062.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Nouveau Paiement",
+      "short_name": "Paiement",
+      "url": "index.html?action=advance",
+      "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/2682/2682062.png", "sizes": "192x192" }]
+    }
+  ]
 }

@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'agripay-v7';
+const CACHE_NAME = 'agripay-v6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -26,7 +26,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = event.request.url;
 
-  // BYPASS pour Supabase et les méthodes d'écriture
+  // BYPASS TOTAL pour Supabase et les méthodes d'écriture
   if (url.includes('supabase.co') || event.request.method !== 'GET') {
     return; 
   }
@@ -34,19 +34,12 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const networkFetch = fetch(event.request).then((response) => {
-        // Mise à jour du cache pour les fichiers statiques
         if (response && response.status === 200 && url.startsWith('http')) {
           const cacheCopy = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, cacheCopy));
         }
         return response;
-      }).catch(() => {
-        // Fallback vers index.html si on est en train de naviguer (évite le 404 au lancement)
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html') || caches.match('./');
-        }
-        return null;
-      });
+      }).catch(() => null);
       
       return cached || networkFetch;
     })

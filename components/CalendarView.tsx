@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Harvest, Advance, RainEvent, Employee, WorkTask, Entrepreneur } from '../types.ts';
 import { 
   ChevronLeft, ChevronRight, Scale, Wallet, Trash2, 
-  CloudRain, Clock, Pickaxe, Info, ShoppingBag, Truck
+  CloudRain, Clock, Pickaxe, Info, ShoppingBag, Truck, Plus
 } from 'lucide-react';
 
 interface Props {
@@ -18,11 +18,15 @@ interface Props {
   onDeleteTask: (id: string) => void;
   onAddRain: (date: string) => void;
   onDeleteRain: (id: string) => void;
+  onQuickHarvest: (date: string) => void;
+  onQuickTask: (date: string) => void;
+  onQuickAdvance: (date: string) => void;
 }
 
 const CalendarView: React.FC<Props> = ({ 
   employees, entrepreneurs, harvests, advances, workTasks, rainEvents, 
-  onDeleteHarvest, onDeleteAdvance, onDeleteTask, onAddRain, onDeleteRain 
+  onDeleteHarvest, onDeleteAdvance, onDeleteTask, onAddRain, onDeleteRain,
+  onQuickHarvest, onQuickTask, onQuickAdvance
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(new Date().toISOString().split('T')[0]);
@@ -45,7 +49,7 @@ const CalendarView: React.FC<Props> = ({
   const dailyRain = rainEvents.filter(r => r.date === selectedDate);
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 pb-20 animate-in fade-in duration-500">
       <div className="bg-white rounded-[3rem] p-6 md:p-10 border shadow-xl shadow-gray-200/50">
         <div className="flex justify-between items-center mb-8 px-2">
           <div>
@@ -84,20 +88,21 @@ const CalendarView: React.FC<Props> = ({
               >
                 <span className={`text-sm md:text-xl font-black ${isSelected && !isToday ? 'text-emerald-700' : ''}`}>{day}</span>
                 
-                <div className="flex flex-wrap gap-0.5 justify-center mt-auto w-full pb-1 overflow-hidden">
-                  {hasRain && <CloudRain className={`w-2.5 h-2.5 ${isToday ? 'text-white' : 'text-blue-400'}`} />}
+                {/* ICONES D'ACTIVITÉ AGRANDIES POUR PC */}
+                <div className="flex flex-wrap gap-0.5 md:gap-1.5 justify-center mt-auto w-full pb-1 md:pb-2 overflow-hidden px-1">
+                  {hasRain && <CloudRain className={`w-2.5 h-2.5 md:w-5 md:h-5 ${isToday ? 'text-white' : 'text-blue-400'}`} />}
                   {dayHarvests.map((h, idx) => {
                     const emp = employees.find(e => e.id === h.employeeId);
-                    return <Scale key={`h-${idx}`} className="w-2 h-2" style={{ color: isToday ? 'white' : emp?.color }} />;
+                    return <Scale key={`h-${idx}`} className="w-2 h-2 md:w-4 md:h-4" style={{ color: isToday ? 'white' : emp?.color }} />;
                   })}
                   {dayTasks.map((t, idx) => {
                     const emp = employees.find(e => e.id === t.employeeId);
-                    return <Pickaxe key={`t-${idx}`} className="w-2 h-2" style={{ color: isToday ? 'white' : emp?.color }} />;
+                    return <Pickaxe key={`t-${idx}`} className="w-2 h-2 md:w-4 md:h-4" style={{ color: isToday ? 'white' : emp?.color }} />;
                   })}
                   {dayAdvances.map((a, idx) => {
-                    if (a.entrepreneurId) return <ShoppingBag key={`e-${idx}`} className={`w-2 h-2 ${isToday ? 'text-white' : 'text-blue-500'}`} />;
+                    if (a.entrepreneurId) return <ShoppingBag key={`e-${idx}`} className={`w-2 h-2 md:w-4 md:h-4 ${isToday ? 'text-white' : 'text-blue-500'}`} />;
                     const emp = employees.find(e => e.id === a.employeeId);
-                    return <Wallet key={`a-${idx}`} className="w-2 h-2" style={{ color: isToday ? 'white' : emp?.color }} />;
+                    return <Wallet key={`a-${idx}`} className="w-2 h-2 md:w-4 md:h-4" style={{ color: isToday ? 'white' : emp?.color }} />;
                   })}
                 </div>
               </button>
@@ -107,14 +112,40 @@ const CalendarView: React.FC<Props> = ({
       </div>
 
       <div className="bg-white p-8 rounded-[3rem] border shadow-xl shadow-gray-200/50 space-y-6">
-        <div className="flex justify-between items-center px-2">
-          <div>
-             <h4 className="font-black text-lg text-emerald-950 tracking-tighter">Activités du Jour</h4>
-             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{selectedDate && new Date(selectedDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+        <div className="flex flex-col gap-4">
+          <div className="flex justify-between items-center px-2">
+            <div>
+               <h4 className="font-black text-lg text-emerald-950 tracking-tighter">Activités du Jour</h4>
+               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{selectedDate && new Date(selectedDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+            </div>
+            <button onClick={() => selectedDate && onAddRain(selectedDate)} className="flex items-center gap-2 px-5 py-3 bg-blue-50 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest btn-haptic">
+              <CloudRain className="w-4 h-4" /> Pluie
+            </button>
           </div>
-          <button onClick={() => selectedDate && onAddRain(selectedDate)} className="flex items-center gap-2 px-5 py-3 bg-blue-50 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest btn-haptic">
-            <CloudRain className="w-4 h-4" /> Signaler Pluie
-          </button>
+
+          <div className="grid grid-cols-3 gap-2 px-2">
+            <button 
+              onClick={() => selectedDate && onQuickHarvest(selectedDate)}
+              className="flex flex-col items-center gap-1.5 p-4 bg-emerald-50 text-emerald-700 rounded-2xl border border-emerald-100 btn-haptic"
+            >
+              <Scale className="w-5 h-5" />
+              <span className="text-[9px] font-black uppercase">+ Récolte</span>
+            </button>
+            <button 
+              onClick={() => selectedDate && onQuickTask(selectedDate)}
+              className="flex flex-col items-center gap-1.5 p-4 bg-blue-50 text-blue-700 rounded-2xl border border-blue-100 btn-haptic"
+            >
+              <Pickaxe className="w-5 h-5" />
+              <span className="text-[9px] font-black uppercase">+ Travail</span>
+            </button>
+            <button 
+              onClick={() => selectedDate && onQuickAdvance(selectedDate)}
+              className="flex flex-col items-center gap-1.5 p-4 bg-amber-50 text-amber-700 rounded-2xl border border-amber-100 btn-haptic"
+            >
+              <Wallet className="w-5 h-5" />
+              <span className="text-[9px] font-black uppercase">+ Avance</span>
+            </button>
+          </div>
         </div>
         
         <div className="space-y-3">

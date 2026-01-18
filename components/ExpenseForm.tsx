@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Employee, Advance, PaymentMethod, Entrepreneur, ExpenseCategory } from '../types.ts';
-// Fixed: Added Briefcase to imports
 import { X, Wallet, CreditCard, Banknote, FileText, ShoppingBag, Truck, User, Info, Pickaxe, Briefcase } from 'lucide-react';
 
 interface Props {
@@ -9,7 +8,7 @@ interface Props {
   entrepreneurs: Entrepreneur[];
   onClose: () => void;
   onSubmit: (expense: Omit<Advance, 'id'>) => void;
-  initialData?: { employeeId?: string; amount?: number };
+  initialData?: { employeeId?: string; amount?: number; date?: string };
 }
 
 const CATEGORIES: { value: ExpenseCategory; label: string; icon: any; color: string }[] = [
@@ -27,8 +26,8 @@ const ExpenseForm: React.FC<Props> = ({ employees, entrepreneurs, onClose, onSub
     employeeId: initialData?.employeeId || '',
     entrepreneurId: '',
     amount: initialData?.amount?.toString() || '',
-    date: new Date().toISOString().split('T')[0],
-    category: (initialData?.amount ? 'AVANCE' : 'DIVERS') as ExpenseCategory,
+    date: initialData?.date || new Date().toISOString().split('T')[0],
+    category: (initialData?.amount ? 'AVANCE' : 'AVANCE') as ExpenseCategory, // Par défaut AVANCE pour les employés
     paymentMethod: 'ESPECES' as PaymentMethod,
     notes: initialData?.amount ? 'Règlement final du solde' : '',
   });
@@ -49,14 +48,14 @@ const ExpenseForm: React.FC<Props> = ({ employees, entrepreneurs, onClose, onSub
   const isSettleMode = !!initialData?.amount;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/20">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/20 animate-in zoom-in-95 duration-200">
         <div className={`p-6 text-white flex justify-between items-center ${isSettleMode ? 'bg-red-700' : 'bg-amber-900'}`}>
           <div className="flex items-center gap-3">
             <div className={`p-2 rounded-xl ${isSettleMode ? 'bg-red-500' : 'bg-amber-500'}`}><ShoppingBag className="w-6 h-6" /></div>
             <div>
-              <h3 className="text-xl font-black">{isSettleMode ? 'Règlement Solde' : 'Nouvelle Dépense'}</h3>
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-70">Enregistrement comptable</p>
+              <h3 className="text-xl font-black">{isSettleMode ? 'Règlement Solde' : 'Nouvelle Opération'}</h3>
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-70">Sortie de caisse</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full"><X className="w-6 h-6" /></button>
@@ -68,8 +67,8 @@ const ExpenseForm: React.FC<Props> = ({ employees, entrepreneurs, onClose, onSub
             <div className="space-y-4">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Type de Bénéficiaire</label>
               <div className="grid grid-cols-2 gap-3">
-                <button type="button" onClick={() => setBeneficiaryType('EMPLOYE')} className={`flex items-center justify-center gap-2 py-3 rounded-2xl font-black text-[10px] uppercase border-2 transition-all ${beneficiaryType === 'EMPLOYE' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-gray-50 text-gray-400'}`}><User className="w-4 h-4" /> Employé</button>
-                <button type="button" onClick={() => setBeneficiaryType('PRESTATAIRE')} className={`flex items-center justify-center gap-2 py-3 rounded-2xl font-black text-[10px] uppercase border-2 transition-all ${beneficiaryType === 'PRESTATAIRE' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-gray-50 text-gray-400'}`}><Truck className="w-4 h-4" /> Prestataire</button>
+                <button type="button" onClick={() => setBeneficiaryType('EMPLOYE')} className={`flex items-center justify-center gap-2 py-3 rounded-2xl font-black text-[10px] uppercase border-2 transition-all ${beneficiaryType === 'EMPLOYE' ? 'bg-emerald-600 text-white border-emerald-600 shadow-md' : 'bg-gray-50 text-gray-400'}`}><User className="w-4 h-4" /> Employé</button>
+                <button type="button" onClick={() => setBeneficiaryType('PRESTATAIRE')} className={`flex items-center justify-center gap-2 py-3 rounded-2xl font-black text-[10px] uppercase border-2 transition-all ${beneficiaryType === 'PRESTATAIRE' ? 'bg-emerald-600 text-white border-emerald-600 shadow-md' : 'bg-gray-50 text-gray-400'}`}><Truck className="w-4 h-4" /> Prestataire</button>
               </div>
             </div>
           )}
@@ -79,7 +78,7 @@ const ExpenseForm: React.FC<Props> = ({ employees, entrepreneurs, onClose, onSub
             <select 
               value={beneficiaryType === 'EMPLOYE' ? formData.employeeId : formData.entrepreneurId}
               onChange={e => setFormData({ ...formData, [beneficiaryType === 'EMPLOYE' ? 'employeeId' : 'entrepreneurId']: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-bold"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-bold focus:ring-2 focus:ring-amber-500"
               required
               disabled={isSettleMode}
             >
@@ -92,7 +91,7 @@ const ExpenseForm: React.FC<Props> = ({ employees, entrepreneurs, onClose, onSub
           </div>
 
           <div className="space-y-4">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Catégorie</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Catégorie de dépense</label>
             <div className="grid grid-cols-3 gap-2">
               {CATEGORIES.map(cat => (
                 <button
@@ -111,30 +110,30 @@ const ExpenseForm: React.FC<Props> = ({ employees, entrepreneurs, onClose, onSub
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Montant (FCFA)</label>
-              <input type="number" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} className="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl font-black text-2xl text-emerald-900" placeholder="0" required />
+              <input type="number" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} className="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl font-black text-2xl text-emerald-900 outline-none focus:ring-2 focus:ring-amber-500" placeholder="0" required />
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Date</label>
-              <input type="date" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl font-bold" required />
+              <input type="date" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-amber-500" required />
             </div>
           </div>
 
           <div className="space-y-2">
             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Mode de Règlement</label>
             <div className="grid grid-cols-2 gap-3">
-              <button type="button" onClick={() => setFormData({ ...formData, paymentMethod: 'ESPECES' })} className={`flex items-center justify-center gap-2 py-3 rounded-2xl font-black text-[10px] uppercase border-2 transition-all ${formData.paymentMethod === 'ESPECES' ? 'bg-gray-900 text-white border-gray-900' : 'bg-gray-50 text-gray-400'}`}><Banknote className="w-4 h-4" /> Espèces</button>
-              <button type="button" onClick={() => setFormData({ ...formData, paymentMethod: 'VIREMENT' })} className={`flex items-center justify-center gap-2 py-3 rounded-2xl font-black text-[10px] uppercase border-2 transition-all ${formData.paymentMethod === 'VIREMENT' ? 'bg-gray-900 text-white border-gray-900' : 'bg-gray-50 text-gray-400'}`}><CreditCard className="w-4 h-4" /> Mobile Money</button>
+              <button type="button" onClick={() => setFormData({ ...formData, paymentMethod: 'ESPECES' })} className={`flex items-center justify-center gap-2 py-3 rounded-2xl font-black text-[10px] uppercase border-2 transition-all ${formData.paymentMethod === 'ESPECES' ? 'bg-gray-900 text-white border-gray-900 shadow-md' : 'bg-gray-50 text-gray-400'}`}><Banknote className="w-4 h-4" /> Espèces</button>
+              <button type="button" onClick={() => setFormData({ ...formData, paymentMethod: 'VIREMENT' })} className={`flex items-center justify-center gap-2 py-3 rounded-2xl font-black text-[10px] uppercase border-2 transition-all ${formData.paymentMethod === 'VIREMENT' ? 'bg-gray-900 text-white border-gray-900 shadow-md' : 'bg-gray-50 text-gray-400'}`}><CreditCard className="w-4 h-4" /> Mobile Money</button>
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Note / Justificatif</label>
-            <textarea value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none min-h-[80px] font-medium" placeholder="Détails sur l'achat ou le prestataire..." />
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Note / Détails</label>
+            <textarea value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none min-h-[80px] font-medium focus:ring-2 focus:ring-amber-500" placeholder="Détails sur l'avance ou l'achat..." />
           </div>
 
           <div className="flex gap-4 pt-4">
             <button type="button" onClick={onClose} className="flex-1 py-4 text-gray-400 font-black uppercase text-[10px] tracking-widest">Annuler</button>
-            <button type="submit" className="flex-2 bg-emerald-600 text-white py-4 px-8 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl active:scale-95">Valider l'Écriture</button>
+            <button type="submit" className="flex-2 bg-amber-600 text-white py-4 px-8 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl active:scale-95">Valider</button>
           </div>
         </form>
       </div>

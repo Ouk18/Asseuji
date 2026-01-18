@@ -1,14 +1,15 @@
 
 import React, { useState } from 'react';
 import { MarketSettings } from '../types.ts';
-import { Save, TrendingUp, DollarSign, Info, Percent, Scale } from 'lucide-react';
+import { Save, TrendingUp, DollarSign, Info, Percent, Scale, Github, ShieldCheck } from 'lucide-react';
 
 interface Props {
   settings: MarketSettings;
   onUpdate: (settings: MarketSettings) => void;
+  version?: string;
 }
 
-const SettingsView: React.FC<Props> = ({ settings, onUpdate }) => {
+const SettingsView: React.FC<Props> = ({ settings, onUpdate, version }) => {
   const [localSettings, setLocalSettings] = useState(settings);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -20,7 +21,7 @@ const SettingsView: React.FC<Props> = ({ settings, onUpdate }) => {
   const cacaoPercent = Math.round(localSettings.cacaoPayRatio * 1000) / 10;
 
   return (
-    <div className="max-w-4xl space-y-8 animate-in fade-in duration-500">
+    <div className="max-w-4xl space-y-8 animate-in fade-in duration-500 pb-20">
       <div className="mb-8">
         <h3 className="text-2xl font-black text-gray-900 mb-2">Configuration de l'Exploitation</h3>
         <p className="text-sm text-gray-500">Gérez vos prix de vente et les tarifs de paie par culture.</p>
@@ -116,6 +117,25 @@ const SettingsView: React.FC<Props> = ({ settings, onUpdate }) => {
           </button>
         </div>
       </form>
+
+      {/* FOOTER INFOS / VERSION */}
+      <div className="pt-12 mt-12 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="flex items-center gap-4">
+           <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 border border-emerald-100 shadow-sm">
+             <ShieldCheck className="w-6 h-6" />
+           </div>
+           <div>
+             <p className="text-sm font-black text-gray-900">AgriPay Management System</p>
+             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Propulsé par Vercel & Supabase</p>
+           </div>
+        </div>
+        <div className="flex flex-col items-center md:items-end">
+           <div className="px-4 py-2 bg-gray-50 rounded-2xl border border-gray-100">
+             <span className="text-xs font-black text-gray-500 uppercase tracking-widest">{version || 'v1.0.0'}</span>
+           </div>
+           <p className="text-[9px] text-gray-300 font-bold mt-2 uppercase">© 2024 - Tous droits réservés</p>
+        </div>
+      </div>
     </div>
   );
 };

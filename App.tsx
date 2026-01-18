@@ -18,6 +18,8 @@ import RainForm from './components/RainForm.tsx';
 import TaskForm from './components/TaskForm.tsx';
 import Auth from './components/Auth.tsx';
 
+const APP_VERSION = "v2.1.0"; // Version actuelle de l'application
+
 const INITIAL_SETTINGS: MarketSettings = {
   payRateHevea: 75,
   payRateCacao: 0,
@@ -152,7 +154,7 @@ const App: React.FC = () => {
         entrepreneur_id: a.entrepreneurId || null,
         date: a.date, amount: a.amount, 
         category: a.category,
-        payment_method: a.paymentMethod, notes: a.notes 
+        payment_method: a.payment_method, notes: a.notes 
       }]);
       if (error) throw error;
       setShowExpenseModal(false);
@@ -177,7 +179,7 @@ const App: React.FC = () => {
     }
   };
 
-  if (!session && !isLoading) return <Auth />;
+  if (!session && !isLoading) return <Auth version={APP_VERSION} />;
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="flex flex-col items-center gap-4">
@@ -193,8 +195,14 @@ const App: React.FC = () => {
       <header className="h-20 bg-white border-b px-4 md:px-8 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-3">
-            <div className="bg-emerald-600 p-2 rounded-xl text-white font-black text-sm">AP</div>
-            <span className="text-xl font-black tracking-tighter text-emerald-950">AgriPay</span>
+            <div className="bg-emerald-600 p-2 rounded-xl text-white font-black text-sm relative">
+              AP
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-400 rounded-full border border-white"></span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xl font-black tracking-tighter text-emerald-950 leading-none">AgriPay</span>
+              <span className="text-[9px] font-black text-emerald-600/50 tracking-widest uppercase">{APP_VERSION}</span>
+            </div>
           </div>
           <nav className="hidden md:flex items-center gap-2">
             <button onClick={() => setActiveTab('dashboard')} className={`px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'dashboard' ? 'bg-emerald-600 text-white shadow-lg' : 'text-gray-400'}`}>Bilan</button>
@@ -212,9 +220,8 @@ const App: React.FC = () => {
       <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
         {activeTab === 'dashboard' && <Dashboard data={data} onExport={() => {}} onNavigateToEmployee={(id) => { setSelectedEmployeeId(id); setActiveTab('employees'); }} userRole={profile?.role} />}
         {activeTab === 'employees' && <EmployeeManager employees={data.employees} entrepreneurs={data.entrepreneurs} harvests={data.harvests} advances={data.advances} workTasks={data.workTasks} selectedId={selectedEmployeeId} onSelectId={setSelectedEmployeeId} onAdd={async (e) => { await supabase.from('employees').insert([{...e, status: 'ACTIF', icon_name:'user', color: PRESET_COLORS[data.employees.length % PRESET_COLORS.length], user_id: session?.user?.id}]); fetchData(); }} onAddEntrepreneur={handleAddEntrepreneur} onUpdate={async (id, u) => { await supabase.from('employees').update(u).eq('id', id); fetchData(); }} onUpdateStatus={async (id, s) => { await supabase.from('employees').update({ status: s }).eq('id', id); fetchData(); }} onClearBalance={(id, amount) => setShowExpenseModal({ employeeId: id, amount })} onDeleteEmployee={(id) => setPendingDeletion({table:'employees', id, label:"l'Employé"})} onDeleteEntrepreneur={(id) => setPendingDeletion({table:'entrepreneurs', id, label:"le Prestataire"})} canDelete={isAdmin} canEdit={canManage} />}
-        {/* Fixed: Added entrepreneurs prop to CalendarView */}
         {activeTab === 'calendar' && <CalendarView employees={data.employees} entrepreneurs={data.entrepreneurs} harvests={data.harvests} advances={data.advances} workTasks={data.workTasks} rainEvents={data.rainEvents} onDeleteHarvest={(id) => setPendingDeletion({table:'harvests', id, label:'cette récolte'})} onDeleteAdvance={(id) => setPendingDeletion({table:'advances', id, label:'cette dépense'})} onDeleteTask={(id) => setPendingDeletion({table:'work_tasks', id, label:'ce travail'})} onAddRain={(date) => setShowRainModal({ date })} onDeleteRain={(id) => setPendingDeletion({table:'rain_events', id, label:'cette météo'})} />}
-        {isAdmin && activeTab === 'settings' && <SettingsView settings={data.settings} onUpdate={async (s) => { await supabase.from('settings').upsert({id: 1, pay_rate_hevea: s.payRateHevea, pay_rate_cacao: s.payRateCacao, market_price_hevea: s.marketPriceHevea, market_price_cacao: s.marketPriceCacao, cacao_pay_ratio: s.cacaoPayRatio}); fetchData(); }} />}
+        {isAdmin && activeTab === 'settings' && <SettingsView version={APP_VERSION} settings={data.settings} onUpdate={async (s) => { await supabase.from('settings').upsert({id: 1, pay_rate_hevea: s.payRateHevea, pay_rate_cacao: s.payRateCacao, market_price_hevea: s.marketPriceHevea, market_price_cacao: s.marketPriceCacao, cacao_pay_ratio: s.cacaoPayRatio}); fetchData(); }} />}
       </main>
 
       <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t flex items-center justify-around py-4 z-50 safe-bottom shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
